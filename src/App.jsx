@@ -7,8 +7,7 @@ function App() {
 
     return (
         <div className="app">
-            <div className="game">
-                <h1 className="title">PONG</h1>
+            <h1 className="title">PONG</h1>
                 {!gameMode ? (
                     <div className="menu">
                         <button onClick={() => setGameMode("single")}>
@@ -21,7 +20,6 @@ function App() {
                 ) : (
                     <Game mode={gameMode} onExit={() => setGameMode(null)} />
                 )}
-            </div>
             <div className="controls">
                 <h1>Instructions</h1>
                 <p>Press "1 Player" to play against the computer.</p>

@@ -7,11 +7,11 @@
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  font-synthesis: none; /*Desactiva la sintesis automatica de negritas y cursivas por el navegador*/
+  text-rendering: optimizeLegibility;/*Optimiza el renderizado del texto para mejorar la legibilidad*/
+  -webkit-font-smoothing: antialiased;/*Mejora la suavidad de las fuentes en navegadores basados en WebKit (como Chrome y Safari) al aplicar un suavizado de bordes.*/
+  -moz-osx-font-smoothing: grayscale;/*Aplica un suavizado de fuentes en escala de grises en sistemas operativos macOS*/
+  -webkit-text-size-adjust: 100%;/*Evita que los navegadores móviles ajusten automáticamente el tamaño del texto*/
 }
 
 body {
