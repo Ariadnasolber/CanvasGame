@@ -25,13 +25,13 @@ body {
 
 .menu {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .menu button {
   padding: 1rem 2rem;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-family: 'Press Start 2P', sans-serif;
   background: black;
   color: white;
@@ -48,7 +48,7 @@ body {
 .controls {
   margin-top: 2rem;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .game-container {

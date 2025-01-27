@@ -21,12 +21,12 @@ function App() {
                     <Game mode={gameMode} onExit={() => setGameMode(null)} />
                 )}
             <div className="controls">
-                <h1>Instructions</h1>
-                <p>Press "1 Player" to play against the computer.</p>
-                <p>Press "2 Players" to play against a friend.</p>
+                <h1>Instrucciones</h1>
+                <p>Presiona "1 Player" para jugar contra la computadora.</p>
+                <p>Presiona "2 Players" para jugar contra un amigo.</p>
                 <p>-----</p>
-                <p>Player 1: W/S keys</p>
-                <p>Player 2: Up/Down arrows</p>
+                <p>Jugador 1: teclas W/S</p>
+                <p>Jugador 2: flechas arriba/abajo</p>
             </div>
         </div>
     );

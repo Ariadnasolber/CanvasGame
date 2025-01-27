@@ -3,14 +3,20 @@ import { useEffect, useRef, useState } from "react";
 const PADDLE_HEIGHT = 100;
 const PADDLE_WIDTH = 20;
 const BALL_SIZE = 10;
-const BALL_SPEED = 1;
+const BALL_SPEED = 2;
 const PADDLE_SPEED = 5;
+const AI_ERROR_MARGIN = 50; // margen de error de la IA
 
 export default function Game({ mode, onExit }) {
     const canvasRef = useRef(null);
     const [score, setScore] = useState([0, 0]);
     const gameLoopRef = useRef(null);
-    const paddleMovement = useRef({ up: false, down: false, paddle2Up: false, paddle2Down: false });
+    const paddleMovement = useRef({
+        up: false,
+        down: false,
+        paddle2Up: false,
+        paddle2Down: false,
+    });
 
     const [gameState, setGameState] = useState({
         ball: {
@@ -20,8 +26,8 @@ export default function Game({ mode, onExit }) {
             dy: BALL_SPEED,
         },
         paddles: [
-            { y: 250 }, // Left paddle
-            { y: 250 }, // Right paddle
+            { y: 250 }, //pala izquierda
+            { y: 250 }, //pala derecha
         ],
     });
 
@@ -31,25 +37,37 @@ export default function Game({ mode, onExit }) {
         let animationFrameId;
 
         const handleKeyPress = (e) => {
-            // Player 1 controls
+            //previene comportamiento predeterminado de las arrow key de scroll de pagina
+            if (["ArrowUp", "ArrowDown"].includes(e.key)) {
+                e.preventDefault();
+            }
+
+            //controles del jugador 1
             if (e.key === "w") paddleMovement.current.up = true;
             if (e.key === "s") paddleMovement.current.down = true;
 
-            // Player 2 controls (human or AI)
+            //cntroles del jugador 2 (humano/IA)
             if (mode === "multi") {
-                if (e.key === "ArrowUp") paddleMovement.current.paddle2Up = true;
-                if (e.key === "ArrowDown") paddleMovement.current.paddle2Down = true;
+                if (e.key === "ArrowUp")
+                    paddleMovement.current.paddle2Up = true;
+                if (e.key === "ArrowDown")
+                    paddleMovement.current.paddle2Down = true;
             }
         };
 
         const handleKeyRelease = (e) => {
-            // Stop paddle movement when key is released
+            if (["ArrowUp", "ArrowDown"].includes(e.key)) {
+                e.preventDefault();
+            }
+            //cuando se suelta la tecla la pala deja de moverse
             if (e.key === "w") paddleMovement.current.up = false;
             if (e.key === "s") paddleMovement.current.down = false;
 
             if (mode === "multi") {
-                if (e.key === "ArrowUp") paddleMovement.current.paddle2Up = false;
-                if (e.key === "ArrowDown") paddleMovement.current.paddle2Down = false;
+                if (e.key === "ArrowUp")
+                    paddleMovement.current.paddle2Up = false;
+                if (e.key === "ArrowDown")
+                    paddleMovement.current.paddle2Down = false;
             }
         };
 
@@ -58,20 +76,29 @@ export default function Game({ mode, onExit }) {
                 const newState = { ...prev };
                 const canvasHeight = canvas.height;
 
-                // Player 1 paddle
+                 //jugador
                 if (paddleMovement.current.up && newState.paddles[0].y > 0) {
                     newState.paddles[0].y -= PADDLE_SPEED;
                 }
-                if (paddleMovement.current.down && newState.paddles[0].y < canvasHeight - PADDLE_HEIGHT) {
+                if (
+                    paddleMovement.current.down &&
+                    newState.paddles[0].y < canvasHeight - PADDLE_HEIGHT
+                ) {
                     newState.paddles[0].y += PADDLE_SPEED;
                 }
 
-                // Player 2 paddle (AI or human)
+                //jugador 2 (IA/humano)
                 if (mode === "multi") {
-                    if (paddleMovement.current.paddle2Up && newState.paddles[1].y > 0) {
+                    if (
+                        paddleMovement.current.paddle2Up &&
+                        newState.paddles[1].y > 0
+                    ) {
                         newState.paddles[1].y -= PADDLE_SPEED;
                     }
-                    if (paddleMovement.current.paddle2Down && newState.paddles[1].y < canvasHeight - PADDLE_HEIGHT) {
+                    if (
+                        paddleMovement.current.paddle2Down &&
+                        newState.paddles[1].y < canvasHeight - PADDLE_HEIGHT
+                    ) {
                         newState.paddles[1].y += PADDLE_SPEED;
                     }
                 }
@@ -87,10 +114,10 @@ export default function Game({ mode, onExit }) {
                     const paddleCenter = prev.paddles[1].y + PADDLE_HEIGHT / 2;
                     const ballY = prev.ball.y;
 
-                    // AI movement: if ball is above paddle center, move up; if below, move down
-                    if (paddleCenter < ballY - 10) {
+                    // MOVIMIENTO DE LA IA: si la pelota está por encima del centro de la pala, mover hacia arriba; si está por debajo, mover hacia abajo
+                    if (paddleCenter < ballY - AI_ERROR_MARGIN) {
                         newState.paddles[1].y += PADDLE_SPEED * 0.6;
-                    } else if (paddleCenter > ballY + 10) {
+                    } else if (paddleCenter > ballY + AI_ERROR_MARGIN) {
                         newState.paddles[1].y -= PADDLE_SPEED * 0.6;
                     }
 
@@ -103,20 +130,26 @@ export default function Game({ mode, onExit }) {
             setGameState((prev) => {
                 const newState = { ...prev };
 
-                // Move ball
+                //ovimiento de la pelota
                 newState.ball.x += newState.ball.dx;
                 newState.ball.y += newState.ball.dy;
 
-                // Ball collision with top and bottom
-                if (newState.ball.y <= 0 || newState.ball.y >= canvas.height - BALL_SIZE) {
+                //colisión de la pelota con los limites superior/inferior
+                if (
+                    newState.ball.y <= 0 ||
+                    newState.ball.y >= canvas.height - BALL_SIZE
+                ) {
                     newState.ball.dy *= -1;
                 }
 
-                // Ball collision with paddles
+                //colisión de la pelota con las palas
                 const checkPaddleCollision = (paddleIndex) => {
                     const paddle = prev.paddles[paddleIndex];
-                    const paddleX = paddleIndex === 0 ? PADDLE_WIDTH : canvas.width - PADDLE_WIDTH * 2;
-                
+                    const paddleX =
+                        paddleIndex === 0
+                            ? PADDLE_WIDTH
+                            : canvas.width - PADDLE_WIDTH * 2;
+
                     if (
                         newState.ball.x <= paddleX + PADDLE_WIDTH &&
                         newState.ball.x >= paddleX &&
@@ -124,29 +157,29 @@ export default function Game({ mode, onExit }) {
                         newState.ball.y <= paddle.y + PADDLE_HEIGHT
                     ) {
                         newState.ball.dx *= -1;
-                
-                        // pequeño ángulo de desviación a la pelota para evitar el rebote en línea recta
+
+                        // pequeño ángulo de desviación a la pelota para evitar el rebote en linea recta
                         const paddleCenter = paddle.y + PADDLE_HEIGHT / 2;
                         const ballHitPosition = newState.ball.y - paddleCenter; //distancia desde el centro de la pala
-                
-                        // modifica la dirección vertical de la pelota dependiendo de donde impacta en la pala
-                        newState.ball.dy = ballHitPosition / PADDLE_HEIGHT * BALL_SPEED * 2; // Factor de desviación
-                
-                        //desvío aleatorio para hacer los rebotesmas aleatorios
-                        newState.ball.dy += (Math.random() - 0.5) * 0.5; // Aleatorio entre -0.25 y 0.25
-                
-                        //si la pelota golpea muy cerca del borde superior o inferior de la pala asegura que no se quede atrapada
+
+                        // modifica la dirección de la pelota dependiendo de donde colisiona en la pala
+                        newState.ball.dy =
+                            (ballHitPosition / PADDLE_HEIGHT) * BALL_SPEED * 2; // Factor de desviación
+
+                        //desvio para rebotes mas aleatorios
+                        newState.ball.dy += (Math.random() - 0.5) * 0.5; //aleatorio entre -0.25 y 0.25
+
+                        //si la pelota golpea muy cerca del borde superior/inferior de la pala asegura que no se quede atrapada
                         if (Math.abs(newState.ball.dy) < 0.5) {
                             newState.ball.dy += (Math.random() - 0.5) * 2; // Pequeña corrección aleatoria
                         }
                     }
                 };
-                
 
                 checkPaddleCollision(0);
                 checkPaddleCollision(1);
 
-                // Ball out of bounds
+                //pelota fuera de limites
                 if (newState.ball.x <= 0) {
                     setScore((prev) => [prev[0], prev[1] + 1]);
                     newState.ball = {
@@ -174,7 +207,7 @@ export default function Game({ mode, onExit }) {
             context.fillStyle = "black";
             context.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw center line
+            //linea central
             context.strokeStyle = "white";
             context.setLineDash([10, 10]);
             context.beginPath();
@@ -182,13 +215,13 @@ export default function Game({ mode, onExit }) {
             context.lineTo(canvas.width / 2, canvas.height);
             context.stroke();
 
-            // Draw score
+            //puntuación
             context.font = "48px monospace";
             context.fillStyle = "white";
             context.fillText(score[0], canvas.width / 4, 60);
             context.fillText(score[1], (canvas.width / 4) * 3, 60);
 
-            // Draw paddles
+            //palas
             context.fillStyle = "white";
             gameState.paddles.forEach((paddle, index) => {
                 context.fillRect(
@@ -201,11 +234,16 @@ export default function Game({ mode, onExit }) {
                 );
             });
 
-            // Draw ball
-            context.fillRect(gameState.ball.x, gameState.ball.y, BALL_SIZE, BALL_SIZE);
+            //pelota
+            context.fillRect(
+                gameState.ball.x,
+                gameState.ball.y,
+                BALL_SIZE,
+                BALL_SIZE
+            );
 
             updateBall();
-            updateAI(); // Ensures AI moves automatically in single-player mode
+            updateAI(); //asegura que la IA se mueva automáticamente en modo 1player
             updatePaddles();
             animationFrameId = requestAnimationFrame(gameLoop);
         };
@@ -220,7 +258,7 @@ export default function Game({ mode, onExit }) {
             window.removeEventListener("keyup", handleKeyRelease);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [mode, score, gameState.ball.x]); // Added gameState.ball.x to dependencies
+    }, [mode, score, gameState.ball.x]);
 
     return (
         <div className="game-container">
